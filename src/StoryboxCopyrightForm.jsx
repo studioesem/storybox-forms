@@ -25,7 +25,7 @@ const C = {
 
 const API_BASE = "https://storybox-stories-api.sarah-571.workers.dev";
 
-const PRIVACY_URL = "https://pub-0030db948a394380932c5d2c6aa961c5.r2.dev/docs/privacy-policy.pdf";
+const PRIVACY_URL = "https://www.storybox.co/privacy-policy";
 
 const COPYRIGHT_OPTIONS = [
   { id: "A", label: "I warrant that I am the sole copyright owner and/or author of the contribution" },
