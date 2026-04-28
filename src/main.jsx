@@ -1,10 +1,24 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import StoryboxCopyrightForm from "./StoryboxCopyrightForm.jsx";
+import StoryboxTalentReleaseForm from "./StoryboxTalentReleaseForm.jsx";
+import StoryboxICIPForm from "./StoryboxICIPForm.jsx";
 import { projectFromLocation } from "./projects.js";
 
+const FORM_COMPONENTS = {
+  "copyright": StoryboxCopyrightForm,
+  "talent-release": StoryboxTalentReleaseForm,
+  "icip": StoryboxICIPForm,
+};
+
+const PAGE_TITLES = {
+  "copyright": (subtitle) => `Contributor Submission${subtitle ? " — " + subtitle : ""}`,
+  "talent-release": (subtitle) => `Photography & Filming Release${subtitle ? " — " + subtitle : ""}`,
+  "icip": (subtitle) => `ICIP Release${subtitle ? " — " + subtitle : ""}`,
+};
+
 function App() {
-  const { slug, config } = projectFromLocation();
+  const { slug, config, formType } = projectFromLocation();
 
   // No project slug in URL, or unknown slug → friendly explainer
   if (!slug || !config) {
@@ -39,12 +53,15 @@ function App() {
     );
   }
 
-  // Set the browser tab title from the project config
-  if (config.pageTitle && typeof document !== "undefined") {
-    document.title = config.pageTitle;
+  // Set the browser tab title — form-type-aware so /talent-release
+  // and /copyright don't share the same window title.
+  if (typeof document !== "undefined") {
+    const titleFn = PAGE_TITLES[formType];
+    document.title = titleFn ? titleFn(config.subtitle) : (config.pageTitle || "STORYBOX Forms");
   }
 
-  return <StoryboxCopyrightForm projectSlug={slug} projectConfig={config} />;
+  const FormComponent = FORM_COMPONENTS[formType] || StoryboxCopyrightForm;
+  return <FormComponent projectSlug={slug} projectConfig={config} />;
 }
 
 ReactDOM.createRoot(document.getElementById("root")).render(

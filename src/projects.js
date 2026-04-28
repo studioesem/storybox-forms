@@ -34,14 +34,29 @@ export const PROJECTS = {
 
 export const DEFAULT_PROJECT_SLUG = "iwc-rugby-league";
 
-/* Read the current project from the URL's first path segment. Returns
-   the matching config object, or null if the slug isn't recognised. */
+/* Recognised form types — second URL segment. Anything else falls
+   through to the default copyright form so existing /<slug>/ URLs
+   keep working. */
+export const FORM_TYPES = new Set(["copyright", "talent-release", "icip"]);
+
+/* Read the current project + form type from the URL.
+   /<slug>                  → { slug, config, formType: "copyright" }
+   /<slug>/copyright        → { slug, config, formType: "copyright" }
+   /<slug>/talent-release   → { slug, config, formType: "talent-release" }
+   /<slug>/icip             → { slug, config, formType: "icip" }
+*/
 export function projectFromLocation(location = window.location) {
-  const seg = (location.pathname || "")
+  const segments = (location.pathname || "")
     .replace(/^\/+/, "")
-    .split("/")[0]
-    .trim();
-  if (!seg) return { slug: null, config: null };
-  const config = PROJECTS[seg] || null;
-  return { slug: seg, config };
+    .split("/")
+    .map(s => s.trim())
+    .filter(Boolean);
+
+  const slug = segments[0] || null;
+  if (!slug) return { slug: null, config: null, formType: "copyright" };
+
+  const config = PROJECTS[slug] || null;
+  const second = segments[1] || "";
+  const formType = FORM_TYPES.has(second) ? second : "copyright";
+  return { slug, config, formType };
 }
