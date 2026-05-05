@@ -3,6 +3,7 @@ import ReactDOM from "react-dom/client";
 import StoryboxCopyrightForm from "./StoryboxCopyrightForm.jsx";
 import StoryboxTalentReleaseForm from "./StoryboxTalentReleaseForm.jsx";
 import StoryboxICIPForm from "./StoryboxICIPForm.jsx";
+import StudioEsemICIPForm from "./StudioEsemICIPForm.jsx";
 import { projectFromLocation } from "./projects.js";
 
 const FORM_COMPONENTS = {
@@ -17,7 +18,85 @@ const PAGE_TITLES = {
   "icip": (subtitle) => `ICIP Release${subtitle ? " — " + subtitle : ""}`,
 };
 
+/* Studio ESEM mode is triggered by the studioesem hostname, or for local dev
+   by ?brand=studioesem on any host. In Studio ESEM mode the URL is just
+   /<form-type> with no project slug. */
+function isStudioEsemHost() {
+  if (typeof window === "undefined") return false;
+  if (window.location.hostname === "forms.studioesem.com") return true;
+  return new URLSearchParams(window.location.search).get("brand") === "studioesem";
+}
+
+function firstPathSegment() {
+  if (typeof window === "undefined") return "";
+  const segments = (window.location.pathname || "")
+    .replace(/^\/+/, "")
+    .split("/")
+    .map(s => s.trim())
+    .filter(Boolean);
+  return segments[0] || "";
+}
+
+const STUDIOESEM_FORM_COMPONENTS = {
+  "icip": StudioEsemICIPForm,
+};
+
+const STUDIOESEM_TITLES = {
+  "icip": "ICIP Release",
+};
+
+function StudioEsemLanding() {
+  return (
+    <div style={{
+      minHeight: "100vh",
+      background: "#F5F0E8",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      padding: 24,
+      fontFamily: "'American Grotesk', system-ui, sans-serif",
+      color: "#3A3F3C",
+      textAlign: "center",
+    }}>
+      <div style={{ maxWidth: 520 }}>
+        <img
+          src="/studioesem-logo-stacked-whitecolour.svg"
+          alt="Studio ESEM"
+          style={{ height: 64, marginBottom: 20, filter: "invert(1)" }}
+        />
+        <h1 style={{
+          fontFamily: "'American Grotesk Condensed', system-ui, sans-serif",
+          fontWeight: 700, fontSize: "1.8rem",
+          color: "#2f2f2f", margin: "0 0 12px",
+          textTransform: "uppercase", letterSpacing: 1,
+        }}>
+          Studio ESEM Forms
+        </h1>
+        <p style={{ fontSize: "1rem", lineHeight: 1.6, color: "#94948f", margin: 0 }}>
+          This page needs a form name in the URL — for example{" "}
+          <code style={{ color: "#545344" }}>/icip</code>. If you followed a
+          link and landed here, the link may be missing that part.
+        </p>
+      </div>
+    </div>
+  );
+}
+
 function App() {
+  /* Studio ESEM mode (forms.studioesem.com or ?brand=studioesem) */
+  if (isStudioEsemHost()) {
+    const formType = firstPathSegment();
+    const FormComponent = STUDIOESEM_FORM_COMPONENTS[formType];
+
+    if (typeof document !== "undefined") {
+      document.title = STUDIOESEM_TITLES[formType] || "Studio ESEM Forms";
+    }
+
+    if (FormComponent) return <FormComponent />;
+    return <StudioEsemLanding />;
+  }
+
+  /* Storybox slug-based mode (forms.storybox.co) */
   const { slug, config, formType } = projectFromLocation();
 
   // No project slug in URL, or unknown slug → friendly explainer
