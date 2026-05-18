@@ -172,6 +172,7 @@ export default function StudioEsemICIPForm() {
   const [contributionDescription, setContributionDescription] = useState("");
   const [exhibitionLocation, setExhibitionLocation] = useState("");
   const [requestRecordingCopy, setRequestRecordingCopy] = useState(false);
+  const [feeOffered, setFeeOffered] = useState(""); // "" | "yes" | "no"
 
   // Your Details
   const [organisation, setOrganisation] = useState("");
@@ -219,6 +220,7 @@ export default function StudioEsemICIPForm() {
       fd.append("contribution-description", contributionDescription.trim());
       fd.append("exhibition-location", exhibitionLocation.trim());
       fd.append("request-recording-copy", requestRecordingCopy ? "true" : "false");
+      fd.append("fee-offered", feeOffered);
       fd.append("organisation", organisation.trim());
       fd.append("street-address", streetAddress.trim());
       fd.append("city", city.trim());
@@ -326,7 +328,7 @@ export default function StudioEsemICIPForm() {
               <img
                 src="/studioesem-logo-stacked-whitecolour.svg"
                 alt="Studio ESEM"
-                style={{ height: 56, width: "auto" }}
+                style={{ height: 40, width: "auto" }}
               />
             </a>
           </div>
@@ -451,6 +453,53 @@ export default function StudioEsemICIPForm() {
               <span style={{ fontFamily: body, fontSize: "0.95rem", color: C.body, lineHeight: 1.5 }}>
                 I would like a copy of the recording used in this production
               </span>
+            </div>
+
+            {/* Fee offered — Yes / No */}
+            <div style={{ marginTop: 18 }}>
+              <p style={{ ...labelStyle, marginBottom: 10 }}>
+                A fee has been offered as part of my participation
+              </p>
+              <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+                {[
+                  { value: "yes", label: "Yes" },
+                  { value: "no",  label: "No"  },
+                ].map(opt => {
+                  const selected = feeOffered === opt.value;
+                  return (
+                    <div
+                      key={opt.value}
+                      onClick={() => setFeeOffered(opt.value)}
+                      role="radio"
+                      aria-checked={selected}
+                      tabIndex={0}
+                      onKeyDown={(e) => { if (e.key === " " || e.key === "Enter") { e.preventDefault(); setFeeOffered(opt.value); } }}
+                      style={{
+                        flex: "1 1 140px",
+                        display: "flex", alignItems: "center", gap: 12,
+                        padding: "12px 16px", borderRadius: 12,
+                        cursor: "pointer", touchAction: "manipulation",
+                        background: selected ? "#faf8e0" : "transparent",
+                        border: `1.5px solid ${selected ? C.cta : C.border}`,
+                        transition: "all 0.15s",
+                      }}
+                    >
+                      <div style={{
+                        width: 22, height: 22, borderRadius: "50%", flexShrink: 0,
+                        border: `2px solid ${selected ? C.cta : C.muted}`,
+                        background: selected ? C.cta : "transparent",
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                        transition: "all 0.15s", color: C.ctaText,
+                      }}>
+                        {selected && <CheckIcon />}
+                      </div>
+                      <span style={{ fontFamily: body, fontSize: "0.95rem", color: C.body, fontWeight: 500 }}>
+                        {opt.label}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           </section>
 
