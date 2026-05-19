@@ -173,6 +173,8 @@ export default function StudioEsemICIPForm() {
   const [exhibitionLocation, setExhibitionLocation] = useState("");
   const [requestRecordingCopy, setRequestRecordingCopy] = useState(false);
   const [feeOffered, setFeeOffered] = useState(""); // "" | "yes" | "no"
+  const [bsb, setBsb] = useState("");
+  const [accountNumber, setAccountNumber] = useState("");
 
   // Your Details
   const [organisation, setOrganisation] = useState("");
@@ -221,6 +223,10 @@ export default function StudioEsemICIPForm() {
       fd.append("exhibition-location", exhibitionLocation.trim());
       fd.append("request-recording-copy", requestRecordingCopy ? "true" : "false");
       fd.append("fee-offered", feeOffered);
+      if (feeOffered === "yes") {
+        fd.append("bsb", bsb.trim());
+        fd.append("account-number", accountNumber.trim());
+      }
       fd.append("organisation", organisation.trim());
       fd.append("street-address", streetAddress.trim());
       fd.append("city", city.trim());
@@ -455,55 +461,9 @@ export default function StudioEsemICIPForm() {
               </span>
             </div>
 
-            {/* Fee offered — Yes / No */}
-            <div style={{ marginTop: 18 }}>
-              <p style={{ ...labelStyle, marginBottom: 10 }}>
-                A fee has been offered as part of my participation
-              </p>
-              <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-                {[
-                  { value: "yes", label: "Yes" },
-                  { value: "no",  label: "No"  },
-                ].map(opt => {
-                  const selected = feeOffered === opt.value;
-                  return (
-                    <div
-                      key={opt.value}
-                      onClick={() => setFeeOffered(opt.value)}
-                      role="radio"
-                      aria-checked={selected}
-                      tabIndex={0}
-                      onKeyDown={(e) => { if (e.key === " " || e.key === "Enter") { e.preventDefault(); setFeeOffered(opt.value); } }}
-                      style={{
-                        flex: "1 1 140px",
-                        display: "flex", alignItems: "center", gap: 12,
-                        padding: "12px 16px", borderRadius: 12,
-                        cursor: "pointer", touchAction: "manipulation",
-                        background: selected ? "#faf8e0" : "transparent",
-                        border: `1.5px solid ${selected ? C.cta : C.border}`,
-                        transition: "all 0.15s",
-                      }}
-                    >
-                      <div style={{
-                        width: 22, height: 22, borderRadius: "50%", flexShrink: 0,
-                        border: `2px solid ${selected ? C.cta : C.muted}`,
-                        background: selected ? C.cta : "transparent",
-                        display: "flex", alignItems: "center", justifyContent: "center",
-                        transition: "all 0.15s", color: C.ctaText,
-                      }}>
-                        {selected && <CheckIcon />}
-                      </div>
-                      <span style={{ fontFamily: body, fontSize: "0.95rem", color: C.body, fontWeight: 500 }}>
-                        {opt.label}
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
           </section>
 
-          {/* YOUR DETAILS — now contains Signature + under-18 + parent signature */}
+          {/* YOUR DETAILS — now contains Signature + under-18 + parent signature + fee */}
           <section style={sectionWrap}>
             <h3 style={sectionHeading}>Your Details</h3>
 
@@ -631,6 +591,88 @@ export default function StudioEsemICIPForm() {
                 <div style={fieldWrap}>
                   <label style={labelStyle}>Parent's signature</label>
                   <SignaturePad value={parentSignature} onChange={setParentSignature} ariaLabel="Parent or guardian signature" />
+                </div>
+              </div>
+            )}
+
+            {/* Fee offered — Yes / No */}
+            <div style={{ marginTop: 18 }}>
+              <p style={{ ...labelStyle, marginBottom: 10 }}>
+                A fee has been offered as part of my participation
+              </p>
+              <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+                {[
+                  { value: "yes", label: "Yes" },
+                  { value: "no",  label: "No"  },
+                ].map(opt => {
+                  const selected = feeOffered === opt.value;
+                  return (
+                    <div
+                      key={opt.value}
+                      onClick={() => setFeeOffered(opt.value)}
+                      role="radio"
+                      aria-checked={selected}
+                      tabIndex={0}
+                      onKeyDown={(e) => { if (e.key === " " || e.key === "Enter") { e.preventDefault(); setFeeOffered(opt.value); } }}
+                      style={{
+                        flex: "1 1 140px",
+                        display: "flex", alignItems: "center", gap: 12,
+                        padding: "12px 16px", borderRadius: 12,
+                        cursor: "pointer", touchAction: "manipulation",
+                        background: selected ? "#faf8e0" : "transparent",
+                        border: `1.5px solid ${selected ? C.cta : C.border}`,
+                        transition: "all 0.15s",
+                      }}
+                    >
+                      <div style={{
+                        width: 22, height: 22, borderRadius: "50%", flexShrink: 0,
+                        border: `2px solid ${selected ? C.cta : C.muted}`,
+                        background: selected ? C.cta : "transparent",
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                        transition: "all 0.15s", color: C.ctaText,
+                      }}>
+                        {selected && <CheckIcon />}
+                      </div>
+                      <span style={{ fontFamily: body, fontSize: "0.95rem", color: C.body, fontWeight: 500 }}>
+                        {opt.label}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {feeOffered === "yes" && (
+              <div style={{ marginTop: 18 }}>
+                <p style={{ ...smallText, margin: "0 0 14px" }}>
+                  Please provide your bank details for payment.
+                </p>
+
+                <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+                  <div style={{ flex: "0 1 200px" }}>
+                    <label style={labelStyle}>BSB</label>
+                    <input
+                      value={bsb}
+                      onChange={e => setBsb(e.target.value)}
+                      placeholder="000-000"
+                      inputMode="numeric"
+                      autoComplete="off"
+                      style={{ ...inputStyle, ...(focusField === "bsb" ? inputFocusStyle : {}) }}
+                      onFocus={() => setFocusField("bsb")} onBlur={() => setFocusField(null)}
+                    />
+                  </div>
+                  <div style={{ flex: "1 1 240px" }}>
+                    <label style={labelStyle}>Account Number</label>
+                    <input
+                      value={accountNumber}
+                      onChange={e => setAccountNumber(e.target.value)}
+                      placeholder="Account number"
+                      inputMode="numeric"
+                      autoComplete="off"
+                      style={{ ...inputStyle, ...(focusField === "accountNumber" ? inputFocusStyle : {}) }}
+                      onFocus={() => setFocusField("accountNumber")} onBlur={() => setFocusField(null)}
+                    />
+                  </div>
                 </div>
               </div>
             )}
