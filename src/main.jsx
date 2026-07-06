@@ -4,7 +4,9 @@ import StoryboxCopyrightForm from "./StoryboxCopyrightForm.jsx";
 import StoryboxTalentReleaseForm from "./StoryboxTalentReleaseForm.jsx";
 import StoryboxICIPForm from "./StoryboxICIPForm.jsx";
 import StudioEsemICIPForm from "./StudioEsemICIPForm.jsx";
+import StudioEsemReleaseForm from "./StudioEsemReleaseForm.jsx";
 import { projectFromLocation } from "./projects.js";
+import { releaseFromKey } from "./studioEsemReleases.js";
 
 const FORM_COMPONENTS = {
   "copyright": StoryboxCopyrightForm,
@@ -27,14 +29,13 @@ function isStudioEsemHost() {
   return new URLSearchParams(window.location.search).get("brand") === "studioesem";
 }
 
-function firstPathSegment() {
-  if (typeof window === "undefined") return "";
-  const segments = (window.location.pathname || "")
+function pathSegments() {
+  if (typeof window === "undefined") return [];
+  return (window.location.pathname || "")
     .replace(/^\/+/, "")
     .split("/")
     .map(s => s.trim())
     .filter(Boolean);
-  return segments[0] || "";
 }
 
 const STUDIOESEM_FORM_COMPONENTS = {
@@ -85,7 +86,23 @@ function StudioEsemLanding() {
 function App() {
   /* Studio ESEM mode (forms.studioesem.com or ?brand=studioesem) */
   if (isStudioEsemHost()) {
-    const formType = firstPathSegment();
+    const segments = pathSegments();
+    const formType = segments[0] || "";
+
+    /* Release forms carry a per-client key in the 2nd segment:
+       /release/<key> → looked up in studioEsemReleases.js */
+    if (formType === "release") {
+      const releaseKey = segments[1] || "";
+      const releaseConfig = releaseFromKey(releaseKey);
+      if (typeof document !== "undefined") {
+        document.title = releaseConfig
+          ? `Photography & Videography Release${releaseConfig.subtitle ? " — " + releaseConfig.subtitle : ""}`
+          : "Studio ESEM Forms";
+      }
+      if (releaseConfig) return <StudioEsemReleaseForm releaseConfig={releaseConfig} releaseKey={releaseKey} />;
+      return <StudioEsemLanding />;
+    }
+
     const FormComponent = STUDIOESEM_FORM_COMPONENTS[formType];
 
     if (typeof document !== "undefined") {
