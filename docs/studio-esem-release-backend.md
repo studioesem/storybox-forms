@@ -172,8 +172,11 @@ curl -s -D - -o /dev/null -X OPTIONS \
 (`storybox.co` is; `studioesem.com` is not — see §3.2). Emails are best-effort
 (`ctx.waitUntil`), so a send failure never blocks the submission.
 
-**Submit 404s the whole page.** The frontend must be *deployed* (not just
-pushed to git) for a new `/release/<key>` route or config to appear on
-`forms.studioesem.com`.
+**Blank page / route not found / old content.** The frontend is a separate
+Cloudflare Pages deploy — **`git push` does NOT deploy it.** After changing
+anything in `src/`, run `./deploy.sh` (builds + `wrangler pages deploy dist`).
+`forms.studioesem.com` and `forms.storybox.co` are both custom domains on the
+`storybox-forms` Pages project. An edge cache may briefly serve the old
+`index.html`; it revalidates within a minute, or bust it with `?cachebust=…`.
 
 See also `docs/moderating-submissions.md` for how reviewers work the CMS.
