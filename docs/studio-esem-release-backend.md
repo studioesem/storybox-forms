@@ -1,124 +1,149 @@
-# Backend spec — Studio ESEM Release submissions
+# Studio ESEM Release — how it works & go-live runbook
 
-Hand-off spec for wiring the **Studio ESEM Photography & Videography Release**
-(`/<slug>/release`, component `StudioEsemReleaseForm.jsx`) into the
-`storybox-worker` repo. It follows the same conventions as the existing
-STORYBOX endpoints (`/contribution`, `/talent-release`, `/icip-release`):
-R2 for signature images, a Webflow CMS collection, a Moderator Notes block,
-and honeypot + elapsed-time spam checks.
-
-Decision (2026-07-06): **new dedicated Webflow collection**, not shared with
-the STORYBOX talent-release collection.
+End-to-end reference for the **Studio ESEM Photography & Videography Release**
+(the WSI "Come Dance With Me" dancer form, and any future client shoot).
 
 ---
 
-## 1. New endpoint
+## 1. The three moving parts
 
 ```
-POST /studio-esem-release
-Content-Type: multipart/form-data
+FRONTEND (this repo: storybox-forms)         WORKER (repo: iwc-rugby-worker,          WEBFLOW
+                                              local: ~/Projects/studioesem/            (Studio ESEM
+                                              storybox-worker)                          workspace)
+─────────────────────────────────────        ─────────────────────────────────       ────────────────
+forms.studioesem.com/release/<key>            POST /studio-esem-release          →     Copyright Submissions
+  │  React form, Studio ESEM branding           • rate-limit + honeypot                 collection
+  │  copy from studioEsemReleases.js            • upload signatures → R2                 (or a dedicated
+  └─ POSTs FormData  ───────────────────►       • create Webflow CMS item               "Studio ESEM Releases"
+     to storybox-stories-api.workers.dev        • email team + contributor              collection if configured)
+                                                   from hello@studioesem.com
 ```
 
-Reuse the same request-handling shape as `/talent-release`. Only the target
-Webflow collection and the two extra fields (`client`, `usage-provisions`)
-differ.
+- **Frontend** — `src/StudioEsemReleaseForm.jsx`, config in `src/studioEsemReleases.js`,
+  routed in `src/main.jsx`. Served in Studio ESEM mode (`forms.studioesem.com`
+  or `?brand=studioesem` locally) at `/release/<key>`.
+- **Worker** — one shared Cloudflare Worker deployed as `storybox-stories-api`
+  (`storybox-stories-api.<...>.workers.dev`). Repo is confusingly named
+  `iwc-rugby-worker`; the file is `storybox-worker.js`. Handler added at
+  `POST /studio-esem-release`, modeled on `/talent-release`.
+- **Webflow** — submissions become CMS items. See §5 for the collection choice.
 
-### Fields the form sends
+---
 
-| FormData key | Required | Notes |
+## 2. Fields sent by the form
+
+| FormData key | Notes |
+|---|---|
+| `project` | the release key from the URL (`wsi-dance`). Must be in the handler's `ALLOWED_PROJECTS`. |
+| `client` | client name, e.g. `UAP/WSI`. |
+| `consent-name` | typed name in the consent clause. |
+| `filming-location`, `filming-date` | shoot location + date. |
+| `usage-provisions` | the "End Client Required Usage" text. |
+| `credit` | freetext — how the dancer wishes to be credited. |
+| `full-name`, `street-address`, `city`, `state`, `postcode`, `phone`, `email-address` | contributor details. |
+| `paid-participant`, `under-18` | `"true"` / `"false"`. |
+| `general-signature`, `general-signature-date` | signature PNG → R2. |
+| `parent-signature`, `parent-signature-date` | if under 18. |
+| `website`, `elapsed` | spam gates (honeypot + time-on-page). |
+
+The extra fields over `/talent-release` are `client`, `usage-provisions`, `credit`.
+They're written into the Webflow item's **Moderator Notes** (and the
+`photo-description` summary), so no new Webflow columns are strictly required.
+
+---
+
+## 3. Go-live checklist
+
+Do these in order. **Steps 1–2 are all you need to go live.** 3–4 are optional polish.
+
+### 1. Deploy the worker endpoint  ✅ code done, needs deploy
+The `/studio-esem-release` handler is committed on branch
+`add-studio-esem-release` in the worker repo. To ship it:
+```bash
+cd ~/Projects/studioesem/storybox-worker
+# merge the branch however you prefer, then:
+npx wrangler deploy
+```
+
+### 2. Verify studioesem.com in Resend  ⚠️ required for emails
+The form's confirmation + team-alert emails send from `hello@studioesem.com`.
+Resend only delivers from a **verified domain**. In the Resend dashboard →
+**Domains** → add `studioesem.com` and complete the DNS records (SPF/DKIM).
+Until then, submissions still succeed but **emails silently won't send**.
+(STORYBOX emails are unaffected — they still use the verified `storybox.co`.)
+
+### 3. (Optional) dedicated Webflow collection
+By default, dancer releases land in the existing **Copyright Submissions**
+collection, tagged `Copyright Status = "Studio ESEM Release"` — filterable,
+zero setup. To give them their own collection instead, see §4.
+
+### 4. Test
+- Local: `npm run dev`, open `/release/wsi-dance?brand=studioesem`, submit.
+- Prod: submit a test entry, confirm the Webflow item + both emails arrive,
+  click the signature R2 link.
+
+---
+
+## 4. The Webflow Collection ID (the "connection ID" bit)
+
+**You don't have to do this to go live** — without it, submissions use the
+shared Copyright Submissions collection. Set it only when you want dancer
+releases in their *own* collection.
+
+**a. Create the collection.** In Webflow (STORYBOX site, Studio ESEM
+workspace) → CMS → **Create Collection** → name it `Studio ESEM Releases`.
+Easiest: duplicate the **Copyright Submissions** collection so the field
+*slugs* match (`full-name`, `email-address`, `phone`, `photo-description`,
+`copyright-status`, `indemnity-agreed`, `project`, `submitted-date`,
+`moderator-notes`). The worker writes those exact slugs.
+
+**b. Get its Collection ID.** A 24-character hex string (like the existing
+`69e4d7a1cb2b7aea34ed8457`). Two ways:
+- **Via the API** (reliable) — with the worker's Webflow token:
+  ```bash
+  # list sites → get your site id
+  curl -s https://api.webflow.com/v2/sites \
+    -H "Authorization: Bearer $WEBFLOW_API_TOKEN" | jq '.sites[] | {id, displayName}'
+  # list collections → find "Studio ESEM Releases" and copy its id
+  curl -s https://api.webflow.com/v2/sites/<SITE_ID>/collections \
+    -H "Authorization: Bearer $WEBFLOW_API_TOKEN" | jq '.collections[] | {id, displayName, slug}'
+  ```
+  (The token is a wrangler secret — `npx wrangler secret list` shows it exists;
+  ask Sarah for the value, or I can fetch the ID for you if you paste it.)
+- **Via the UI** — open the collection in the Designer; the Collection ID is in
+  the collection's Settings / API panel.
+
+**c. Wire it in.** In `wrangler.toml`, uncomment and set:
+```toml
+ESEM_RELEASE_COLLECTION_ID = "your-24-char-collection-id"
+```
+Then `npx wrangler deploy`. The handler uses it automatically
+(`env.ESEM_RELEASE_COLLECTION_ID || env.COPYRIGHT_COLLECTION_ID`).
+
+---
+
+## 5. Adding a new client shoot later
+
+1. **Frontend** (`src/studioEsemReleases.js`): copy the `wsi-dance` block to a
+   new key, fill in `client`, `usageProvisions`, `production`, clauses. The URL
+   becomes `forms.studioesem.com/release/<new-key>`.
+2. **Worker** (`storybox-worker.js`): add `<new-key>` to the
+   `ALLOWED_PROJECTS` set in the `/studio-esem-release` handler, then
+   `npx wrangler deploy`.
+3. That's it — same collection, same emails.
+
+---
+
+## 6. Config / env reference
+
+| Where | Key | Purpose |
 |---|---|---|
-| `project` | yes | release key from the URL 2nd segment, e.g. `dance` (from `/release/dance`). Must be in `ALLOWED_PROJECTS`. |
-| `client` | no | Client name, from project config (may be empty). |
-| `consent-name` | yes | Typed name in the consent clause. |
-| `filming-location` | yes | Shoot location. |
-| `filming-date` | yes | `YYYY-MM-DD`. |
-| `usage-provisions` | no | The agreed usage text, from project config. |
-| `full-name` | yes | Signer's legal name. |
-| `street-address` | no | |
-| `city` | no | |
-| `state` | no | |
-| `postcode` | no | 4 digits. |
-| `phone` | no | |
-| `email-address` | yes | Follow-up + confirmation email. |
-| `credit` | no | Freetext — how the contributor wishes to be credited. |
-| `paid-participant` | yes | `"true"` / `"false"`. |
-| `under-18` | yes | `"true"` / `"false"`. |
-| `general-signature` | yes | PNG data URL → upload to R2. |
-| `general-signature-date` | yes | `YYYY-MM-DD`. |
-| `parent-signature` | if under-18 | PNG data URL → upload to R2. |
-| `parent-signature-date` | if under-18 | `YYYY-MM-DD`. |
-| `website` | — | **Honeypot.** Must be empty, else silently accept + drop. |
-| `elapsed` | — | ms since form mount. Reject if implausibly small (reuse the existing threshold). |
-
-### Processing (same as talent-release)
-
-1. **Spam gate** — reject if `website` non-empty or `elapsed` below the existing threshold.
-2. **Allowlist** — 403 if `project` not in `ALLOWED_PROJECTS` (add `esem-dance` there).
-3. **Upload signatures** — decode `general-signature` (and `parent-signature` if
-   present) and PUT to the R2 signatures bucket; keep the returned public URLs.
-4. **Create Webflow item** in the new collection (below).
-5. **Email the contributor** — reuse the talent-release confirmation template,
-   swapping STORYBOX branding for Studio ESEM.
-6. **Respond** `{ "success": true }` on success, `{ "success": false, "error": "…" }`
-   otherwise. The form shows `error` verbatim.
-
----
-
-## 2. New Webflow collection — "Studio ESEM Releases"
-
-Create in the same STORYBOX site (Studio ESEM workspace). Suggested fields:
-
-| Display name | Slug | Type | Populated from |
-|---|---|---|---|
-| Name | `name` | Plain text | `full-name` (Webflow requires a Name field) |
-| Full Name | `full-name` | Plain text | `full-name` |
-| Email Address | `email-address` | Email | `email-address` |
-| Phone | `phone` | Plain text | `phone` |
-| Client | `client` | Plain text | `client` |
-| Shoot Location | `shoot-location` | Plain text | `filming-location` |
-| Shoot Date | `shoot-date` | Date | `filming-date` |
-| Usage Provisions | `usage-provisions` | Plain text (long) | `usage-provisions` |
-| Credit | `credit` | Plain text | `credit` |
-| Paid Participant | `paid-participant` | Switch | `paid-participant` |
-| Under 18 | `under-18` | Switch | `under-18` |
-| Project | `project` | Plain text | `project` |
-| Submitted Date | `submitted-date` | Date | server timestamp |
-| Moderator Notes | `moderator-notes` | Plain text (long) | auto-block below |
-
-### Moderator Notes block (auto-populated)
-
-Mirror the existing format so reviewers read it the same way as copyright/talent:
-
-```
-Consent name: <consent-name>
-Signature: <R2 url to general-signature.png>
-Signed: <general-signature-date>
-Address: <street-address>, <city>, <state>, <postcode>
-Client: <client>
-Usage: <usage-provisions>
-```
-
-If `under-18` is true, append:
-
-```
-Under-18 — Parent signature: <R2 url to parent-signature.png>
-Parent signed: <parent-signature-date>
-```
-
-The signature URLs are the legal record — reviewers click to view the PNG.
-
----
-
-## 3. Frontend touch-points (already done in storybox-forms)
-
-- Served in **Studio ESEM mode** (`forms.studioesem.com`, or `?brand=studioesem`
-  locally) at `/release/<key>`, e.g. `/release/dance`. Routed in `main.jsx`.
-- Per-client copy lives in `src/studioEsemReleases.js`, keyed by `<key>`. The
-  component (`StudioEsemReleaseForm.jsx`) reads its legal copy from that config.
-- The endpoint is set per client in `studioEsemReleases.js` → `endpoint`
-  (currently `"/studio-esem-release"`). No frontend change needed once the
-  worker endpoint exists.
-- Remember to add each release `<key>` (e.g. `dance`) to the worker's
-  `ALLOWED_PROJECTS` — this is the value sent in the `project` field.
+| `wrangler.toml` `[vars]` | `COPYRIGHT_COLLECTION_ID` | shared collection (fallback target). |
+| `wrangler.toml` `[vars]` | `ESEM_RELEASE_COLLECTION_ID` | dedicated Studio ESEM collection (optional). |
+| `wrangler.toml` `[vars]` | `ESEM_EMAIL_FROM` | from-address for Studio ESEM emails (`hello@studioesem.com`). |
+| `wrangler.toml` `[vars]` | `ESEM_EMAIL_REPLY_TO` | reply-to for the contributor ack. |
+| wrangler secret | `WEBFLOW_API_TOKEN` | Webflow Data API auth. |
+| wrangler secret | `RESEND_API_KEY` | email sending. |
 
 See also `docs/moderating-submissions.md` for how reviewers work the CMS.
