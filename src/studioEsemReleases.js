@@ -18,8 +18,8 @@ export const RELEASES = {
   // ── DRAFT placeholder — rename & fill before the dance shoot ──
   "dance": {
     title: "Photography & Videography Release Form",
-    subtitle: "Dance Production — [Client Name]",
-    client: "[Client Name]",
+    subtitle: "Dance Production [Come Dance with Me] — Western Sydney International",
+    client: "UAP/WSI",
     // The customisable grant — one bullet per clause.
     clauses: [
       "Studio ESEM is granted the right to use this recording for the Production and its associated documentation, promotion and marketing;",
@@ -29,7 +29,7 @@ export const RELEASES = {
     // The client-specific usage outcome — media, territory, duration.
     // Shown to the signer in a highlighted box. EDIT PER SHOOT.
     usageProvisions:
-      "[Describe the agreed usage — e.g. “Dance footage for [Client], for use across social media, the client website and broadcast, in Australia, for two (2) years from the shoot date.”]",
+      "Assignment of all rights in the Services Materials, all media, including online and social distribution",
     definitions: [
       ["Appearance", "means my name, image, physical likeness, voice, and any and all attributes of my personality and/or performance;"],
       ["The Production", "is the photography and videography shoot described above, produced by Studio ESEM for the Client."],
