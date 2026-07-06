@@ -15,11 +15,13 @@
  *      (see docs/studio-esem-release-backend.md)
  */
 export const RELEASES = {
-  // ── DRAFT placeholder — rename & fill before the dance shoot ──
-  "wsi-dance-full-release": {
+  "wsi-dance": {
     title: "Photography & Videography Release Form",
     subtitle: "Dance Production [Come Dance with Me] — Western Sydney International",
     client: "UAP/WSI",
+    // Short description of the Production, woven into the consent line so
+    // the defined term "the Production" has a clear referent.
+    production: "“Come Dance With Me”, a dance production developed for Western Sydney International (WSI) Multimedia Activations",
     // The customisable grant — one bullet per clause.
     clauses: [
       "Studio ESEM is granted the right to use this recording for the Production and its associated documentation, promotion and marketing;",
@@ -29,13 +31,15 @@ export const RELEASES = {
     // The client-specific usage outcome — media, territory, duration.
     // Shown to the signer in a highlighted box. EDIT PER SHOOT.
     usageProvisions:
-      "Assignment of all rights in the Services Materials, all media, including online and social distribution",
+      "The Contributor assigns to the End Client (UAP/WSI) all right, title and interest in and to the Services Materials in which the Contributor appears, for use across all media now known or hereafter devised, worldwide and in perpetuity, including without limitation online and social media distribution.",
     definitions: [
       ["Appearance", "means my name, image, physical likeness, voice, and any and all attributes of my personality and/or performance;"],
-      ["The Production", "is the photography and videography shoot described above, produced by Studio ESEM for the Client."],
+      ["The Production", "means the production identified above, produced by Studio ESEM for the End Client (UAP/WSI)."],
     ],
     showPaid: true,
     showUnder18: true,
+    // Credit — single freetext field: how the dancer wishes to be credited.
+    showCredits: true,
     // Worker endpoint — see docs/studio-esem-release-backend.md.
     // Not yet wired, so submit will 404 until the endpoint exists.
     endpoint: "/studio-esem-release",

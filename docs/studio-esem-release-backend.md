@@ -40,6 +40,7 @@ differ.
 | `postcode` | no | 4 digits. |
 | `phone` | no | |
 | `email-address` | yes | Follow-up + confirmation email. |
+| `credit` | no | Freetext — how the contributor wishes to be credited. |
 | `paid-participant` | yes | `"true"` / `"false"`. |
 | `under-18` | yes | `"true"` / `"false"`. |
 | `general-signature` | yes | PNG data URL → upload to R2. |
@@ -77,6 +78,7 @@ Create in the same STORYBOX site (Studio ESEM workspace). Suggested fields:
 | Shoot Location | `shoot-location` | Plain text | `filming-location` |
 | Shoot Date | `shoot-date` | Date | `filming-date` |
 | Usage Provisions | `usage-provisions` | Plain text (long) | `usage-provisions` |
+| Credit | `credit` | Plain text | `credit` |
 | Paid Participant | `paid-participant` | Switch | `paid-participant` |
 | Under 18 | `under-18` | Switch | `under-18` |
 | Project | `project` | Plain text | `project` |

@@ -41,6 +41,7 @@ const DEFAULTS = {
   title: "Photography & Videography Release Form",
   subtitle: "",
   client: "",
+  production: "",
   clauses: [
     "Studio ESEM is granted the right to use this recording for the Production and its associated documentation, promotion and marketing;",
     "I waive all personal rights and objections to, including the right to inspect, any Use of my Appearance by Studio ESEM in connection with the Production;",
@@ -53,6 +54,7 @@ const DEFAULTS = {
   ],
   showPaid: true,
   showUnder18: true,
+  showCredits: false,
   endpoint: "/studio-esem-release",
 };
 
@@ -201,6 +203,9 @@ export default function StudioEsemReleaseForm({ releaseConfig, releaseKey }) {
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
 
+  // Section — Credit (config-gated, single freetext field)
+  const [credit, setCredit] = useState("");
+
   // Section 4 — Consent signature
   const [generalSignature, setGeneralSignature] = useState("");
   const [generalSignatureDate, setGeneralSignatureDate] = useState(() => new Date().toISOString().slice(0, 10));
@@ -253,6 +258,7 @@ export default function StudioEsemReleaseForm({ releaseConfig, releaseKey }) {
       fd.append("postcode", postcode.trim());
       fd.append("phone", phone.trim());
       fd.append("email-address", email.trim());
+      fd.append("credit", credit.trim());
       fd.append("paid-participant", paidParticipant ? "true" : "false");
       fd.append("under-18", under18 ? "true" : "false");
       if (generalSignature) fd.append("general-signature", generalSignature);
@@ -424,7 +430,8 @@ export default function StudioEsemReleaseForm({ releaseConfig, releaseKey }) {
             </div>
 
             <p style={bodyText}>
-              hereby consent to be photographed and filmed by Studio ESEM{R.client ? ` for ${R.client}` : ""}, on the following terms:
+              hereby consent to be photographed and filmed by Studio ESEM{R.client ? ` for ${R.client}` : ""}
+              {R.production ? <> in connection with {R.production} (the “Production”)</> : ""}, on the following terms:
             </p>
 
             <ul style={{ margin: "0 0 18px", paddingLeft: 22, fontFamily: body, fontSize: "0.95rem", color: C.body, lineHeight: 1.6 }}>
@@ -443,7 +450,7 @@ export default function StudioEsemReleaseForm({ releaseConfig, releaseKey }) {
                 marginBottom: 18,
               }}>
                 <p style={{ ...smallText, margin: "0 0 6px", fontWeight: 600, color: C.heading, textTransform: "uppercase", letterSpacing: "0.08em", fontSize: "0.75rem" }}>
-                  Agreed usage
+                  End Client Required Usage
                 </p>
                 <p style={{ ...smallText, margin: 0 }}>{R.usageProvisions}</p>
               </div>
@@ -578,6 +585,23 @@ export default function StudioEsemReleaseForm({ releaseConfig, releaseKey }) {
               />
             </div>
           </section>
+
+          {/* SECTION — CREDIT (config-gated, single freetext field) */}
+          {R.showCredits && (
+            <section style={sectionWrap}>
+              <h3 style={sectionHeading}>Credit</h3>
+              <div style={fieldWrap}>
+                <label style={labelStyle}>How you'd like to be credited <span style={optionalTag}>(optional)</span></label>
+                <input
+                  value={credit}
+                  onChange={e => setCredit(e.target.value)}
+                  placeholder="e.g. Jane Doe, Dancer"
+                  style={{ ...inputStyle, ...(focusField === "credit" ? inputFocusStyle : {}) }}
+                  onFocus={() => setFocusField("credit")} onBlur={() => setFocusField(null)}
+                />
+              </div>
+            </section>
+          )}
 
           {/* SECTION 4 — SIGNATURE */}
           <section style={sectionWrap}>
