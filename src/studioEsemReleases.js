@@ -16,7 +16,7 @@
  */
 export const RELEASES = {
   // ── DRAFT placeholder — rename & fill before the dance shoot ──
-  "dance": {
+  "wsi-dance": {
     title: "Photography & Videography Release Form",
     subtitle: "Dance Production [Come Dance with Me] — Western Sydney International",
     client: "UAP/WSI",
