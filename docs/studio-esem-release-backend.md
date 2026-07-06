@@ -17,8 +17,11 @@ forms.studioesem.com/release/<key>            POST /studio-esem-release         
   │  copy from studioEsemReleases.js            • upload signatures → R2                 (or a dedicated
   └─ POSTs FormData  ───────────────────►       • create Webflow CMS item               "Studio ESEM Releases"
      to storybox-stories-api.workers.dev        • email team + contributor              collection if configured)
-                                                   from hello@studioesem.com
+                                                   ("Studio ESEM" via storybox.co,
+                                                    reply-to hello@studioesem.com)
 ```
+
+**Status: LIVE.** Worker deployed; endpoint verified. The form works end to end.
 
 - **Frontend** — `src/StudioEsemReleaseForm.jsx`, config in `src/studioEsemReleases.js`,
   routed in `src/main.jsx`. Served in Studio ESEM mode (`forms.studioesem.com`
@@ -55,23 +58,23 @@ They're written into the Webflow item's **Moderator Notes** (and the
 
 ## 3. Go-live checklist
 
-Do these in order. **Steps 1–2 are all you need to go live.** 3–4 are optional polish.
+**Steps 1–2 are DONE (live in production).** 3–4 are optional polish.
 
-### 1. Deploy the worker endpoint  ✅ code done, needs deploy
-The `/studio-esem-release` handler is committed on branch
-`add-studio-esem-release` in the worker repo. To ship it:
+### 1. Deploy the worker endpoint  ✅ DONE
+The `/studio-esem-release` handler is merged into `keep-warm-cron` and
+deployed (`storybox-stories-api`). To ship future changes:
 ```bash
 cd ~/Projects/studioesem/storybox-worker
-# merge the branch however you prefer, then:
 npx wrangler deploy
 ```
 
-### 2. Verify studioesem.com in Resend  ⚠️ required for emails
-The form's confirmation + team-alert emails send from `hello@studioesem.com`.
-Resend only delivers from a **verified domain**. In the Resend dashboard →
-**Domains** → add `studioesem.com` and complete the DNS records (SPF/DKIM).
-Until then, submissions still succeed but **emails silently won't send**.
-(STORYBOX emails are unaffected — they still use the verified `storybox.co`.)
+### 2. Email sending  ✅ DONE (free)
+Emails send from **`Studio ESEM <stories@storybox.co>`** with replies routed
+to **`hello@studioesem.com`** (`ESEM_EMAIL_FROM` / `ESEM_EMAIL_REPLY_TO`).
+This reuses the already-verified `storybox.co` domain, so **no Resend upgrade
+and no DNS change is needed** — Resend's free tier only allows one verified
+domain. To send from `hello@studioesem.com` *itself*, verify `studioesem.com`
+in Resend (paid tier) and set `ESEM_EMAIL_FROM` back to it.
 
 ### 3. (Optional) dedicated Webflow collection
 By default, dancer releases land in the existing **Copyright Submissions**
@@ -141,8 +144,8 @@ Then `npx wrangler deploy`. The handler uses it automatically
 |---|---|---|
 | `wrangler.toml` `[vars]` | `COPYRIGHT_COLLECTION_ID` | shared collection (fallback target). |
 | `wrangler.toml` `[vars]` | `ESEM_RELEASE_COLLECTION_ID` | dedicated Studio ESEM collection (optional). |
-| `wrangler.toml` `[vars]` | `ESEM_EMAIL_FROM` | from-address for Studio ESEM emails (`hello@studioesem.com`). |
-| `wrangler.toml` `[vars]` | `ESEM_EMAIL_REPLY_TO` | reply-to for the contributor ack. |
+| `wrangler.toml` `[vars]` | `ESEM_EMAIL_FROM` | from-address for Studio ESEM emails. Currently `Studio ESEM <stories@storybox.co>` (verified domain, free tier). |
+| `wrangler.toml` `[vars]` | `ESEM_EMAIL_REPLY_TO` | reply-to for the contributor ack (`hello@studioesem.com`). |
 | wrangler secret | `WEBFLOW_API_TOKEN` | Webflow Data API auth. |
 | wrangler secret | `RESEND_API_KEY` | email sending. |
 
