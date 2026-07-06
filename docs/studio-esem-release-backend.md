@@ -149,4 +149,31 @@ Then `npx wrangler deploy`. The handler uses it automatically
 | wrangler secret | `WEBFLOW_API_TOKEN` | Webflow Data API auth. |
 | wrangler secret | `RESEND_API_KEY` | email sending. |
 
+---
+
+## 7. Gotchas / troubleshooting
+
+**"Network error" on submit (but curl to the endpoint works) → CORS.**
+The worker only accepts submissions from an allow-listed origin. Studio ESEM
+forms are served from `forms.studioesem.com`, which must be permitted in the
+`corsHeaders()` function in `storybox-worker.js`. If you ever serve a form from
+a *new* domain, add it there (alongside the `storybox.co` / `studioesem.com`
+checks) and redeploy — otherwise the browser blocks the POST even though the
+backend is healthy. Quick test:
+```bash
+curl -s -D - -o /dev/null -X OPTIONS \
+  "https://storybox-stories-api.sarah-571.workers.dev/studio-esem-release" \
+  -H "Origin: https://forms.studioesem.com" \
+  -H "Access-Control-Request-Method: POST" | grep -i access-control-allow-origin
+# should echo back https://forms.studioesem.com
+```
+
+**Emails not arriving.** Check the from-domain is verified in Resend
+(`storybox.co` is; `studioesem.com` is not — see §3.2). Emails are best-effort
+(`ctx.waitUntil`), so a send failure never blocks the submission.
+
+**Submit 404s the whole page.** The frontend must be *deployed* (not just
+pushed to git) for a new `/release/<key>` route or config to appear on
+`forms.studioesem.com`.
+
 See also `docs/moderating-submissions.md` for how reviewers work the CMS.
