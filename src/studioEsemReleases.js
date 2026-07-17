@@ -31,7 +31,7 @@ export const RELEASES = {
     // The client-specific usage outcome — media, territory, duration.
     // Shown to the signer in a highlighted box. EDIT PER SHOOT.
     usageProvisions:
-      "The Contributor assigns to the End Client (UAP/WSI) all right, title and interest in and to the Services Materials in which the Contributor appears, for use across all media now known or hereafter devised, worldwide and in perpetuity, including without limitation online and social media distribution.",
+      "The Contributor hereby consents to be photographed and filmed by Studio ESEM and The Comms Store for UAP/WSI in connection with the dance activation “Come Dance With Me”, inclusive of online, social and physical exhibition outcomes.",
     definitions: [
       ["Appearance", "means my name, image, physical likeness, voice, and any and all attributes of my personality and/or performance;"],
       ["The Production", "means the production identified above, produced by Studio ESEM for the End Client (UAP/WSI)."],
