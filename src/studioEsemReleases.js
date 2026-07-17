@@ -19,6 +19,9 @@ export const RELEASES = {
     title: "Photography & Videography Release Form",
     subtitle: "Dance Production [Come Dance with Me] — Western Sydney International",
     client: "UAP/WSI",
+    // Who is doing the photographing/filming — woven into the consent intro
+    // line. Keep aligned with usageProvisions below.
+    filmedBy: "Studio ESEM and The Comms Store",
     // Short description of the Production, woven into the consent line so
     // the defined term "the Production" has a clear referent.
     production: "“Come Dance With Me”, a dance production developed for Western Sydney International (WSI) Multimedia Activations",

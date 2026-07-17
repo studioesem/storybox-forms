@@ -430,7 +430,7 @@ export default function StudioEsemReleaseForm({ releaseConfig, releaseKey }) {
             </div>
 
             <p style={bodyText}>
-              hereby consent to be photographed and filmed by Studio ESEM{R.client ? ` for ${R.client}` : ""}
+              hereby consent to be photographed and filmed by {R.filmedBy || "Studio ESEM"}
               {R.production ? <> in connection with {R.production} (the “Production”)</> : ""}, on the following terms:
             </p>
 
