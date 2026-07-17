@@ -17,14 +17,14 @@
 export const RELEASES = {
   "wsi-dance": {
     title: "Photography & Videography Release Form",
-    subtitle: "Dance Production [Come Dance with Me] — Western Sydney International",
+    subtitle: "Dance Production [Come Dance with Me] — Western Sydney",
     client: "UAP/WSI",
     // Who is doing the photographing/filming — woven into the consent intro
     // line. Keep aligned with usageProvisions below.
     filmedBy: "Studio ESEM and The Comms Store",
     // Short description of the Production, woven into the consent line so
     // the defined term "the Production" has a clear referent.
-    production: "“Come Dance With Me”, a dance production developed for Western Sydney International (WSI) Multimedia Activations",
+    production: "“Come Dance With Me”, a dance production in Western Sydney",
     // The customisable grant — one bullet per clause.
     clauses: [
       "Studio ESEM is granted the right to use this recording for the Production and its associated documentation, promotion and marketing;",
@@ -37,7 +37,7 @@ export const RELEASES = {
       "The Contributor hereby consents to be photographed and filmed by Studio ESEM and The Comms Store in connection with the dance activation “Come Dance With Me”, inclusive of online, social and physical exhibition outcomes.",
     definitions: [
       ["Appearance", "means my name, image, physical likeness, voice, and any and all attributes of my personality and/or performance;"],
-      ["The Production", "means the production identified above, produced by Studio ESEM for the End Client (UAP/WSI)."],
+      ["The Production", "means the production identified above, produced by Studio ESEM/The Comms Store."],
     ],
     showPaid: true,
     showUnder18: true,
